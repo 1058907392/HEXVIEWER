@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" type="text/css" href="css/normalize.css" />
+
+  <link rel="stylesheet" type="text/css" href="css/roboto.css" />
+
+  <link rel="stylesheet" type="text/css" href="css/SingleDatePicker.css" />
+
+  <link rel="icon" href="images/qiu.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <style type="text/css">
+    *,
+    *:before,
+    *:after {
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      -ms-box-sizing: border-box;
+    }
+	.box1{width: 100%;height: 120px; border:1px solid #999;}
+	.box2{width: 100%;height: 500px; border:1px solid #999;}
+	.box3{width: 100%;height: 100px; border:1px solid #999;}
+	.box2 .lie1,.box2 .lie2,.box2 .lie3{float:left;height: 500px; line-height:30px;text-align: left;border:1px solid #999;overflow-y:auto;}
+	.lie1{width: 10%;}
+	.lie2{width: 60%;}
+	.lie3{width: 30%;}
+	.box3 .lie4,.box3 .lie5{float:left; padding:5px 10px;height: 100px; line-height:20px;text-align: left;overflow-y:auto;}
+	.lie4{width: 10%;}
+	.lie5{width: 90%;}
+	#inputtextarea{width: 100%;height: 100%;}
+	.hex_num_head{width:5%;float:left;margin-left: 3px;margin-right: 3px;}
+	.hex_num{width:5%;float:left;margin-left: 3px;margin-right: 3px;}
+	.hex_string{float:left;width:10px;}
+	.hex_string_head{float:left;width:10px;}
+	.hex_row{float:left;}
+	#start_selection{max-width: 80px;}
+	#end_selection{max-width: 80px;}
+	td{border: 1px solid #ccc; text-align: center;}
+	.convert_div{font-size:9px;}
+  </style>
+  <meta name="referrer" content="never">
+  <script src="https://cdn.staticfile.org/jquery/2.2.4/jquery.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div id="basic">
+    </div>
+  </div>
+  <script src="elm.js"></script>
+  <script>
+	var app = Elm.Main.init({ 
+		node: document.getElementById("basic"),
+	});
+
+    
+	//输入框内容改变的处理
+	$("#inputtextarea").change(function(){
+		var primitivetext = $(this).val();
+		var heximal_array = Array();
+		var heximal_row_array = Array ();
+		var heximal_string_array = Array();
+
+		$("#hexrowsnumber").text('');
+		$("#content1").text('');
+		$("#hexstring").text('');
+
+		if (primitivetext !=''){ //judge the data is not empty
+			var first_char = primitivetext.substr(0,1);
+			var last_char = primitivetext.substr(-1,1);
+			if(first_char=="["&&last_char=="]"){  //judge the data format
+				//形成三个数组 十六进制的数组，序列号数组，字符数组
+				primitivetext = primitivetext.substr(1,primitivetext.length-2);
+				var promitive_array = primitivetext.split(',');
+				$.each(promitive_array,function(n,obj){
+					var temper_hex_string = (n*1).toString(16).toString();
+					temper_hex_string = int2hexformat(temper_hex_string);
+					var temp_hex = (obj*1).toString(16).toString();
+					var temper_hex_length = temp_hex.length;
+					if(temper_hex_length==1){
+						temp_hex ="0"+temp_hex;
+					}
+					heximal_row_array[n] = temper_hex_string;
+					heximal_array[n]= temp_hex;
+				    heximal_string_array[n] = int2ascii(obj);
+				});
+			}else{
+				alert("数据格式不对");
+				return false;
+			}
+		}
+		
+		var heximal_row_string ="<div class='hex_row'></div><br>";
+        var heximal_string ="<div class='hex_num_head'>0</div><div class='hex_num_head'>1</div><div class='hex_num_head'>2</div><div class='hex_num_head'>3</div><div class='hex_num_head'>4</div><div class='hex_num_head'>5</div><div class='hex_num_head'>6</div><div class='hex_num_head'>7</div><div class='hex_num_head'>8</div><div class='hex_num_head'>9</div><div class='hex_num_head'>A</div><div class='hex_num_head'>B</div><div class='hex_num_head'>C</div><div class='hex_num_head'>D</div><div class='hex_num_head'>E</div><div class='hex_num_head'>F</div><br>";
+		var heximal_string_string ="<div class='hex_string_head' >0</div><div class='hex_string_head'>1</div><div class='hex_string_head'>2</div><div class='hex_string_head'>3</div><div class='hex_string_head'>4</div><div class='hex_string_head'>5</div><div class='hex_string_head'>6</div><div class='hex_string_head'>7</div><div class='hex_string_head'>8</div><div class='hex_string_head'>9</div><div class='hex_string_head'>A</div><div class='hex_string_head'>B</div><div class='hex_string_head'>C</div><div class='hex_string_head'>D</div><div class='hex_string_head'>E</div><div class='hex_string_head'>F</div><br>";
+		$.each(heximal_row_array,function(n,obj){
+			if(((n*1)%16)==0){
+				heximal_row_string += "<div class='hex_row'>"+obj+"</div><br>";
+			}
+		});
+
+		$.each(heximal_array,function(n,obj){
+			
+				if(((n*1+1)%16)==0){
+					heximal_string += "<div class='hex_num' style='text-align:left;' row_num='"+heximal_row_array[n]+"' >"+obj+"</div><br>";
+				}else{
+					heximal_string +=  "<div class='hex_num' style='text-align:left;' row_num='"+heximal_row_array[n]+"' >"+obj+"</div>"
+				}
+		
+		});
+
+		$.each(heximal_string_array,function(n,obj){
+			//alert(obj);
+			if(((n*1+1)%16)==0)	{
+				heximal_string_string += "<div class='hex_string' row_num='"+heximal_row_array[n]+"' >"+obj+"</div><br>";
+			}else{
+				heximal_string_string +=  "<div class='hex_string' row_num='"+heximal_row_array[n]+"' >"+obj+"</div>"
+			}
+		});
+
+		$("#hexrowsnumber").append(heximal_row_string);
+		$("#content1").append(heximal_string);
+		$("#hexstring").append(heximal_string_string);
+		
+	});
+
+	//鼠标点下的时候将以往的选中内容去掉
+	$("#content1").mousedown(function(){
+		//数字恢复颜色
+		$(".hex_num").each(function(){
+			$(this).css('background-color','white');
+			$(this).css('color','black');
+		});
+		//字符恢复颜色
+		$(".hex_string").each(function(){
+			$(this).css('background-color','white');
+			$(this).css('color','black');
+		});
+	});
+	//鼠标拖动的效果
+	$("#content1").mousemove(function(){
+		 var content1 = $("#content1").text();
+		 if(content1!=""){
+			var txt = window.getSelection ? window.getSelection().getRangeAt(0): document.selection.createRange().text;
+		 }else{
+			return false;
+		 }
+		 
+		 if(txt !=''){
+			var docss = txt.cloneContents();
+			var tempdiv = document.createElement("div");
+			tempdiv.appendChild(docss);
+			var selectedhtml = tempdiv.innerHTML;
+			var selectedhtml_string = selectedhtml.toString();
+			//求出选中开始和结束的位置
+			var first_row_num = selectedhtml_string.indexOf('row_num=');
+			var last_row_num = selectedhtml_string.lastIndexOf('row_num=');
+			var start_selection = selectedhtml_string.substr(first_row_num+9,8);
+			var end_selection = selectedhtml_string.substr(last_row_num+9,8);
+			
+			//显示在选中信息框中的数字
+            $(".hex_num[row_num="+start_selection+"]").click();
+			$("#start_selection").val(start_selection);
+			$("#end_selection").val(end_selection);
+			//显示被选中的字符
+			var start_selection_index = "";
+			var end_selection_index ="";
+			$(".hex_num").each(function(n){
+				var this_row_num = $(this).attr('row_num');
+				if(this_row_num==start_selection){
+					start_selection_index = n;
+				}
+				if(this_row_num==end_selection){
+					end_selection_index = n;
+				}
+			});
+			
+			$(".hex_string").each(function(n){
+				var this_row_num = $(this).attr('row_num');
+				if(n<=end_selection_index && n>=start_selection_index){
+					$(this).css('background-color',"#0076e0");
+					$(this).css('color',"white");
+				}
+				
+			});
+			//app.ports.receiveData.send(txt.toString());	
+			
+		 }
+    		
+    });
+
+    $("#content1").delegate(".hex_num","click",function(){
+		//消除上一个选中的色
+		$(".hex_num").each(function(){
+			$(this).css('background-color','white');
+			$(this).css('color','black');
+		});
+		//这个上色
+		$(this).css('background-color',"#0076e0");
+		$(this).css('color',"white");
+		var this_row_num = $(this).attr('row_num');
+        //字符去色
+		$(".hex_string").each(function(){
+			$(this).css('background-color','white');
+			$(this).css('color','black');
+		});
+		//字符上色
+		$(".hex_string[row_num="+this_row_num+"]").css('background-color',"#0076e0");
+		$(".hex_string[row_num="+this_row_num+"]").css('color',"white");
+		//填入选中位置
+		$("#start_selection").val(this_row_num);
+		$("#end_selection").val("");
+
+		//处理要显示的字符 be 从左往右  Le 从右向左
+		var this_num = $(this).text();
+		var this_row_num = $(this).attr('row_num');
+		var this_row_num_int = parseInt(this_row_num,16);
+		var second_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+1).toString(16).toString())+"]").text();
+		var third_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+2).toString(16).toString())+"]").text();
+		var forth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+3).toString(16).toString())+"]").text();
+		var fifth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+4).toString(16).toString())+"]").text();
+		var sixth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+5).toString(16).toString())+"]").text();
+		var seventh_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+6).toString(16).toString())+"]").text();
+		var eightth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+7).toString(16).toString())+"]").text();
+		var nineth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+8).toString(16).toString())+"]").text();
+		var tenth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+9).toString(16).toString())+"]").text();
+		var eleventh_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+10).toString(16).toString())+"]").text();
+		var twelveth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+11).toString(16).toString())+"]").text();
+		var thirteenth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+12).toString(16).toString())+"]").text();
+		var fortenth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+13).toString(16).toString())+"]").text();
+		var fiftenth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+14).toString(16).toString())+"]").text();
+		var sixteenth_num = $(".hex_num[row_num="+int2hexformat((this_row_num_int*1+15).toString(16).toString())+"]").text();
+        if(second_num!=''){
+			var i16be = this_num.toString()+second_num.toString();
+			i16be = i16be.replace(/\s*/g,"");
+			var i16le = second_num.toString()+this_num.toString();
+			i16le = i16le.replace(/\s*/g,"");
+			var i16le_signed = hex2int(i16le);
+			var i16le_unsigned = parseInt(i16le,16);
+			var i16be_signed = hex2int(i16be);
+			var i16be_unsigned = parseInt(i16be,16);
+		}else{
+			var i16be = "";
+			var i16le = "";
+			var i16le_signed = "";
+			var i16le_unsigned =  "";
+			var i16be_signed =  "";
+			var i16be_unsigned =  "";
+		}
+
+		if(forth_num!=''){
+			var i32be = this_num.toString()+second_num.toString()+third_num.toString()+forth_num.toString();
+			i32be = i32be.replace(/\s*/g,"");
+			var i32le = forth_num.toString()+third_num.toString()+second_num.toString()+this_num.toString();
+			i32le = i32le.replace(/\s*/g,"");
+			var i32le_signed = hex2int(i32le);
+			var i32le_unsigned = parseInt(i32le,16);
+			var i32be_signed = hex2int(i32be);
+			var i32be_unsigned = parseInt(i32be,16);
+		}else{
+			var i32be = "";
+			var i32le = "";
+			var i32le_signed = "";
+			var i32le_unsigned =  "";
+			var i32be_signed =  "";
+			var i32be_unsigned =  "";
+		}
+
+		if(eightth_num!=''){
+			var i64be = this_num.toString()+second_num.toString()+third_num.toString()+forth_num.toString()+fifth_num.toString()+sixth_num.toString()+seventh_num.toString()+eightth_num.toString();
+			i64be = i64be.replace(/\s*/g,"");
+			var i64le = eightth_num.toString()+seventh_num.toString()+sixth_num.toString()+fifth_num.toString()+forth_num.toString()+third_num.toString()+second_num.toString()+this_num.toString();
+			i64le = i64le.replace(/\s*/g,"");
+			var i64le_signed = hex2int(i64le);
+			var i64le_unsigned = parseInt(i64le,16);
+			var i64be_signed = hex2int(i64be);
+			var i64be_unsigned = parseInt(i64be,16);
+		}else{
+			var i64be = "";
+			var i64le = "";
+			var i64le_signed = "";
+			var i64le_unsigned =  "";
+			var i64be_signed =  "";
+			var i64be_unsigned =  "";
+		}
+        var i8 = this_num.replace(/\s*/g,"");
+		var i8_signed = hex2int(i8);
+		var i8_unsigned = parseInt(i8,16);
+		if(i32be!=''){
+			var float_be = HexToFloat32(i32be);
+			var float_le = HexToFloat32(i32le);
+		}else{
+			var float_be = "";
+			var float_le = "";
+		}
+
+		if(i64be!=''){
+			var double_be = hex_to_number(i64be);
+			var double_le = hex_to_number(i64le);
+		}else{
+			var double_be = "";
+			var double_le = "";
+		}
+		var utf = hexToStr(this_num,'utf-8')+hexToStr(second_num,'utf-8')+hexToStr(third_num,'utf-8')+hexToStr(forth_num,'utf-8');
+		utf += hexToStr(fifth_num,'utf-8')+hexToStr(sixth_num,'utf-8')+hexToStr(seventh_num,'utf-8')+hexToStr(eightth_num,'utf-8');
+		utf += hexToStr(nineth_num,'utf-8')+hexToStr(tenth_num,'utf-8')+hexToStr(eleventh_num,'utf-8')+hexToStr(twelveth_num,'utf-8');
+		utf += hexToStr(thirteenth_num,'utf-8')+hexToStr(fortenth_num,'utf-8')+hexToStr(fiftenth_num,'utf-8')+hexToStr(sixteenth_num,'utf-8');
+		var ascii  = int2ascii(parseInt(this_num,16))+int2ascii(parseInt(second_num,16))+int2ascii(parseInt(third_num,16))+int2ascii(parseInt(forth_num,16));
+		ascii  += int2ascii(parseInt(fifth_num,16))+int2ascii(parseInt(sixth_num,16))+int2ascii(parseInt(seventh_num,16))+int2ascii(parseInt(eightth_num,16));
+		ascii  += int2ascii(parseInt(nineth_num,16))+int2ascii(parseInt(tenth_num,16))+int2ascii(parseInt(eleventh_num,16))+int2ascii(parseInt(twelveth_num,16));
+		ascii  += int2ascii(parseInt(thirteenth_num,16))+int2ascii(parseInt(fortenth_num,16))+int2ascii(parseInt(fiftenth_num,16))+int2ascii(parseInt(sixteenth_num,16));
+		show_convert(i8_signed,i16le_signed,i16be_signed,i32le_signed,i32be_signed,i64le_signed,i64be_signed,i8_unsigned,i16le_unsigned,i16be_unsigned,i32le_unsigned,i32be_unsigned,i64le_unsigned,i64be_unsigned,float_le,float_be,double_le,double_be,utf,ascii);
+	});
+	
+	function HexToFloat32(str) {
+    	var int = parseInt(str, 16);
+   		if (int > 0 || int < 0) {
+       		 var sign = (int >>> 31) ? -1 : 1;
+       		 var exp = (int >>> 23 & 0xff) - 127;
+       		 var mantissa = ((int & 0x7fffff) + 0x800000).toString(2);
+       		 var float32 = 0
+       		 for (i = 0; i < mantissa.length; i += 1) { float32 += parseInt(mantissa[i]) ? Math.pow(2, exp) : 0; exp-- }
+       			 return float32 * sign;
+   			 } else return 0
+	}
+
+	function hex_to_number(str) {
+  		// Pad the string with zeroes to 16 characters.
+  		// You can omit this if you control your inputs.
+  		str = (str + "0000000000000000").slice(0,16);
+
+  		// Split into bits: sign (1), exponent (11), significand (52).
+ 		var sign_and_exponent_bits = parseInt(str.slice(0,3), 16);
+  		var sign = sign_and_exponent_bits >= 0x800 ? -1 : +1;
+ 		var exponent_bits = sign_and_exponent_bits & ((1<<11) - 1);
+  		var significand_bits = parseInt(str.slice(3,16), 16);
+
+  		// Classify the floating-point value.
+  		if (exponent_bits == 0x7FF)  // infinity | not a number
+   			 return significand_bits == 0 ? sign * Number.POSITIVE_INFINITY : Number.NaN;
+ 		else if (exponent_bits == 0)  // zero | subnormal number
+    		return sign * Math.pow(2, 1-1023-52) * significand_bits;
+  		else  // normal number
+   	 		return sign * Math.pow(2, exponent_bits-1023-52) * (Math.pow(2, 52) + significand_bits);
+	}
+
+	function int2hexformat (temper_hex_string){
+		var temper_hex_string_length = temper_hex_string.length;
+		if(temper_hex_string_length==1){
+			temper_hex_string = "0000000"+temper_hex_string;
+		}else if(temper_hex_string_length==2){
+			temper_hex_string = "000000"+temper_hex_string;
+		}else if(temper_hex_string_length==3){
+			temper_hex_string = "00000"+temper_hex_string;
+		}else if(temper_hex_string_length==4){
+			temper_hex_string = "0000"+temper_hex_string;
+		}else if(temper_hex_string_length==5){
+			temper_hex_string = "000"+temper_hex_string;
+		}else if(temper_hex_string_length==6){
+			temper_hex_string = "00"+temper_hex_string;
+		}else if(temper_hex_string_length==7){
+			temper_hex_string = "0"+temper_hex_string;
+		}else{
+
+		}
+		return temper_hex_string;
+	}
+
+    function int2ascii (obj){
+		if((obj*1)>=32&&(obj*1)<=127){
+			hex_val = String.fromCharCode(obj*1);
+		}else{
+			hex_val = "..";
+		}
+		return hex_val;
+	}
+
+    function hex2int(hexstr){
+		var twostr = parseInt(hexstr,16).toString(2);
+		var bitnum = hexstr.length *4;
+		if(twostr.length<bitnum){
+			while(twostr.length<bitnum){
+				twostr="0"+twostr;
+			}
+		}
+
+		if(twostr.substring(0,1)=="0"){
+			//正数
+			twostr = parseInt(twostr,2);
+			return twostr;
+		}else{
+			//负数
+			var twostr_unsigned ="";
+			twostr = parseInt(twostr,2)-1;
+			twostr = twostr.toString(2);
+			twostr_unsigned = twostr.substring(1,bitnum);
+			twostr_unsigned = twostr_unsigned.replace(/0/g,"z");
+			twostr_unsigned = twostr_unsigned.replace(/1/g,"0");
+			twostr_unsigned = twostr_unsigned.replace(/z/g,"1");
+			twostr = parseInt(-twostr_unsigned,2);
+			return twostr;
+
+		}
+	}
+
+
+    function show_convert(i8_signed,i16le_signed,i16be_signed,i32le_signed,i32be_signed,i64le_signed,i64be_signed,i8_unsigned,i16le_unsigned,i16be_unsigned,i32le_unsigned,i32be_unsigned,i64le_unsigned,i64be_unsigned,float_le,float_be,double_le,double_be,utf,ascii){
+		$("#i8_signed").text(i8_signed);
+		$("#i16le_signed").text(i16le_signed);
+		$("#i16be_signed").text(i16be_signed);
+		$("#i32le_signed").text(i32le_signed);
+		$("#i32be_signed").text(i32be_signed);
+		$("#i64le_signed").text(i64le_signed);
+		$("#i64be_signed").text(i64be_signed);
+		$("#i8_unsigned").text(i8_unsigned);
+		$("#i16le_unsigned").text(i16le_unsigned);
+		$("#i16be_unsigned").text(i16be_unsigned);
+		$("#i32le_unsigned").text(i32le_unsigned);
+		$("#i32be_unsigned").text(i32be_unsigned);
+		$("#i64le_unsigned").text(i64le_unsigned);
+		$("#i64be_unsigned").text(i64be_unsigned);
+		$("#double_be").text(double_be);
+		$("#double_le").text(double_le);
+		$("#float_be").text(float_be);
+		$("#float_le").text(float_le);
+		$("#ascii").text(ascii);
+		$("#utf").text(utf);
+	}
+
+	function hexToStr(hex,encoding) {
+ 		var trimedStr = hex.trim();
+  		var rawStr = trimedStr.substr(0, 2).toLowerCase() === "0x" ? trimedStr.substr(2) : trimedStr;
+  		var len = rawStr.length;
+  		if (len % 2 !== 0) {
+    		alert("Illegal Format ASCII Code!");
+   			 return "";
+ 		}
+  		var curCharCode;
+  		var resultStr = [];
+  		for (var i = 0; i < len; i = i + 2) {
+    		curCharCode = parseInt(rawStr.substr(i, 2), 16);
+    		resultStr.push(curCharCode);
+ 		 }
+  		// encoding为空时默认为utf-8
+ 		var bytesView = new Uint8Array(resultStr);
+  		var str = new TextDecoder(encoding).decode(bytesView);
+  		return str;
+	}
+
+  </script>
+</body>
+
+
+</html>
